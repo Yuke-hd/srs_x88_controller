@@ -2,7 +2,7 @@ import json
 import asyncio
 import aiohttp
 import time
-from method import status
+
 
 class Subscriber:
     audio_endpoint = "/sony/audio"
@@ -27,7 +27,6 @@ class Subscriber:
         self.URL = "ws://" + ip + self.av_endpoint
         self.isRunning = True
         self.ws = None
-        
 
     async def sub(self):
         async with aiohttp.ClientSession() as session:
@@ -40,7 +39,6 @@ class Subscriber:
             except aiohttp.client_exceptions.ClientConnectorError:
                 print("failed to subscribe to input notification, check ip settings")
 
-
     async def subscribe(self):
         async with aiohttp.ClientSession() as session:
             async with session.ws_connect(self.URL) as self.ws:
@@ -49,20 +47,17 @@ class Subscriber:
                 j = json.dumps(await self.ws.receive_json())
                 print(j)
 
-    async def listen(self,queue):
-        global status
+    async def listen(self, queue):
         while self.isRunning:
-            j = json.dumps(await self.ws.receive_json())
-            j = (await self.ws.receive_json())
+            j = await self.ws.receive_json()
             # print("[listener] ",end='')
             # print(j)
-            while not queue.qsize()==0:
+            while queue.qsize() > 0 or queue.full():
                 queue.get()
             j = j["params"][0]["source"]
             queue.put(j)
             
-
-    def run(self,queue):
+    def run(self, queue):
         self.event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.event_loop)
         # event_loop = asyncio.get_event_loop()
@@ -78,5 +73,3 @@ class Subscriber:
         self.run_app.cancel()
         self.event_loop.call_soon_threadsafe(self.event_loop.stop)
         self.isRunning = False
-        
-        

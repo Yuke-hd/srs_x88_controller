@@ -50,8 +50,9 @@ input_option = {
     "network": "netService:audio?service=spotify&contentId=-1"
 }
 current = 0
-queue = Queue()
+queue = Queue(maxsize=5)
 current_input = "init"
+
 
 def power_func(command):
     endpoint = "http://" + target_url + "/sony" + system_endpoint
